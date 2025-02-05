@@ -15,7 +15,17 @@
 #define PORT 8080
 #define SEND_SIZE (1008)
 
-int available_socketNum = 3;
+int client_sockets[3] = {-1, -1, -1};
+
+int get_client_sockets_idx()
+{
+    for (int i = 0; i < 3; ++i)
+    {
+        if (client_sockets[i] == -1)
+            return i;
+    }
+    return -1;
+}
 
 void handle_client(int client_socket, int client_idx)
 {
@@ -96,11 +106,8 @@ int main()
     int client_idx;
     while (true)
     {
-        if (available_socketNum <= 0)
+        if ((client_idx = get_client_sockets_idx()) >= 0)
         {
-
-        }
-        
             if ((client_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
             {
                 perror("Accept failed");
@@ -108,7 +115,7 @@ int main()
             std::cout << "✅ 클라이언트 연결됨!" << std::endl;
             clients.emplace_back(handle_client, client_socket, client_idx);
             client_sockets[client_idx] = client_socket;
-        
+        }
     }
 
     std::cout << "소켓 닫기" << std::endl;
