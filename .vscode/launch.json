@@ -1,0 +1,61 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug mode",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build", // 빌드된 바이너리 파일 경로
+            "args": [], // 프로그램 실행 시 전달할 인자 (필요한 경우 추가)
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "build-debug",
+            "miDebuggerPath": "/usr/bin/gdb", // GDB 경로 (시스템에 맞게 수정)
+            "logging": {
+                "trace": true,
+                "traceResponse": true,
+                "engineLogging": true
+            },
+            "stopAtConnect": true,
+            "targetArchitecture": "x86_64" // 아키텍처 설정 (필요한 경우 수정)
+        },
+        {
+            "name": "Release mode",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build", // 빌드된 바이너리 파일 경로
+            "args": [], // 프로그램 실행 시 전달할 인자 (필요한 경우 추가)
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "build-release", // 디버깅 전에 실행할 작업 (tasks.json의 "build" 작업)
+            "miDebuggerPath": "/usr/bin/gdb", // GDB 경로 (시스템에 맞게 수정)
+            "logging": {
+                "trace": true,
+                "traceResponse": true,
+                "engineLogging": true
+            },
+            "stopAtConnect": true,
+            "targetArchitecture": "x86_64" // 아키텍처 설정 (필요한 경우 수정)
+        }
+    ]
+}
