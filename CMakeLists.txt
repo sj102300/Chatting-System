@@ -25,6 +25,7 @@ include_directories(${CMAKE_BINARY_DIR})
 # Main application source files (excluding unnecessary files)
 set(APP_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/server/server.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/server/shared.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/server/client_thread.cc
 )
 

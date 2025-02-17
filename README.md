@@ -14,8 +14,6 @@
 
 4. server는 client + id : message 형식으로 input.txt파일에 데이터를 저장한다.
 
-## 기능명세
-
 
 ## 설계
 1. mutex를 이용해 input.txt(공유자원)에 클라이언트 한명씩 접근할 수 있도록 한다.

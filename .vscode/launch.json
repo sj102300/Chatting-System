@@ -5,7 +5,7 @@
             "name": "Debug mode",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build", // 빌드된 바이너리 파일 경로
+            "program": "${workspaceFolder}/build/SocketProgramming", // 빌드된 바이너리 파일 경로
             "args": [], // 프로그램 실행 시 전달할 인자 (필요한 경우 추가)
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
