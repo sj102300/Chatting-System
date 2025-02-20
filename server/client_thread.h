@@ -9,20 +9,20 @@
 
 #define BUFFER_SIZE (1008)
 
-class ClientThread{
+class ClientThread
+{
 public:
     ClientThread(int clientfd);
     ~ClientThread();
-    int getClientFd();
+
     void removeThread();
 
 private:
-    static std::mutex mtx;
-    std::unique_ptr<std::thread> t;
-    int clientfd_;
     void writeClientMessage();
 
-    // 복사 금지 (std::thread는 복사할 수 없음)
-    ClientThread(const ClientThread&) = delete;
-    ClientThread& operator=(const ClientThread&) = delete;
+    std::unique_ptr<std::thread> t;
+    static std::mutex mtx;
+
+    int clientfd_;
+    std::atomic<bool> stop_;
 };

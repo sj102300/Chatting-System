@@ -5,81 +5,88 @@
 #include <mutex>
 #include <memory>
 #include <unistd.h>
+
 #include "shared.h"
-#define MAX_CLIENT (3)
 
-std::mutex Shared::clientThreads_mtx;
-std::mutex Shared::waitingQueue_mtx;
-std::mutex Shared::file_mtx;
-std::mutex Shared::deletedClientThreads_mtx;
+Shared::Shared() : stop_(false)
+{
+    background_thread_ = std::thread(&Shared::arrangeClientThreads, this);
+    client_queue_management_thread_ = std::thread(&Shared::clientQueueManagement, this);
+}
 
-std::unordered_set<int> Shared::deletedClientThreads;
-std::unordered_map<int, std::shared_ptr<ClientThread>> Shared::clientThreads;
-std::queue<int> Shared::waitingQueue;
-std::ofstream Shared::file("input.txt", std::ios::app);
+Shared::~Shared()
+{
+    stop_ = true;
+    if (background_thread_.joinable())
+        background_thread_.join();
+    if (client_queue_management_thread_.joinable())
+        client_queue_management_thread_.join();
 
-void Shared::queuePush(int clientfd) {
+    std::cout << "Shared 소멸" << std::endl;
+}
+
+void Shared::queuePush(int clientfd)
+{
+    waitingQueue.push(clientfd);
+}
+
+void Shared::arrangeClientThreads()
+{
+    while (!stop_)
     {
-        std::lock_guard<std::mutex> lock(waitingQueue_mtx);
-        waitingQueue.push(clientfd);
-    }
-    queuePop(false);
-}
-
-void Shared::queuePop(bool hasMtx){
-    if(!hasMtx)
-        std::lock_guard<std::mutex> lock(clientThreads_mtx);
-    
-    if(clientThreads.size() >= MAX_CLIENT)
-        return;
-    
-    int target;
-    {
-        std::lock_guard<std::mutex> lock(waitingQueue_mtx);
-        if(waitingQueue.empty())
-            return;
-        target = waitingQueue.front();
-        waitingQueue.pop();
-    }
-    clientThreads.insert({target, std::make_shared<ClientThread>(target)});
-}
-
-void Shared::removeClientFd(int clientfd){
-    std::lock_guard<std::mutex> lock(deletedClientThreads_mtx);
-    deletedClientThreads.insert(clientfd);
-}
-
-void Shared::arrangeClientThreads(){
-    while (true){
         deleteClientThread();
-        std::cout<<"arrange중"<<std::endl;
-        sleep(1);
+        std::cout << "arrange중" << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
+    std::cout << "arrange thread를 종료합니다." << std::endl;
 }
 
-void Shared::deleteClientThread(){
-    std::lock_guard<std::mutex> lock2(deletedClientThreads_mtx);
-    if(deletedClientThreads.size() <= 0)
+void Shared::deleteClientThread()
+{
+    std::lock_guard<std::mutex> lock_client_threads(deleteClientThreads_mtx);
+    if (deletedClientThreads.size() <= 0)
         return;
-    std::lock_guard<std::mutex> lock(clientThreads_mtx);
-    for(auto it = deletedClientThreads.begin(); it!=deletedClientThreads.end();it++){
+
+    for (auto it = deletedClientThreads.begin(); it != deletedClientThreads.end(); ++it)
+    {
+        std::lock_guard<std::mutex> lock_client_threads(clientThreads_mtx);
         clientThreads[*it]->removeThread();
         clientThreads.erase(*it);
-        queuePop(true);
     }
     deletedClientThreads.clear();
 }
 
-void Shared::writeInputFile(std::string clientId, std::string buffer){
+void Shared::clientQueueManagement()
+{
+    while (!stop_)
     {
-        std::lock_guard<std::mutex> lock(file_mtx);
-        Shared::file<<"클라이언트" << clientId <<": " <<buffer<<std::endl;
+        if (clientThreads.size() >= MAX_CLIENT)
+            continue;
+
+        if (waitingQueue.empty())
+            continue;
+
+        const int target = waitingQueue.front();
+        waitingQueue.pop();
+        clientThreads.insert({target, std::make_shared<ClientThread>(target)});
+        std::cout << "clientThreads size : " << clientThreads.size() << std::endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
+
+    if (stop_)
+    {
+        std::lock_guard<std::mutex> lock_client_threads(clientThreads_mtx);
+        for (auto &pair : clientThreads)
+        {
+            pair.second->removeThread();
+        }
+        clientThreads.clear();
+    }
+    std::cout << "clientQueueManagement thread를 종료합니다." << std::endl;
 }
 
-std::shared_ptr<ClientThread> Shared::getClientThread(int clientfd){
-    std::lock_guard<std::mutex> lock(clientThreads_mtx);
-    auto it = clientThreads.find(clientfd);
-    if (it == clientThreads.end()) return nullptr;
-    return it->second; 
+void Shared::removeClientFd(int clientfd)
+{
+    std::lock_guard<std::mutex> lock_client_threads(deleteClientThreads_mtx);
+    deletedClientThreads.insert(clientfd);
 }
