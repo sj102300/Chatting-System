@@ -1,16 +1,16 @@
 # 📜 요구사항 명세
-1. Client와 Server간의 채팅 시스템을 개발한다.
+1. Client와 Server간의 **채팅** 시스템을 개발한다.
 2. Server는 Client에서 온 메시지를 LogFile에 client의 id와 함께 저장한다.
 3. Client는 맨 처음 자신의 고유 Id를 보내고 이후에 메시지를 보낸다.
 4. Client는 종료 요청시 "exit"을 전송한다.
 5. Server는 exit 메시지를 받으면 연결을 해제하고 할당받았던 fd값을 반환한다.
-6. Server는 최대 3명의 Client까지 동시에 처리할 수 있다. (최대 3개의 ClientThread만 사용할 수 있다)
+6. Server는 **최대 3명의 Client**까지 **동시에 처리**할 수 있다. (최대 3개의 ClientThread만 사용할 수 있다)
 7. 이후에 접속하는 Client들은 대기 이후에 전송할 수 있다.
 
 # 💡 구현시 고려사항
-1. 각 공유자원은 접근시, 동시성 문제가 발생하지 않도록 mutex를 이용한다.
-2. 공유자원은 singleton 패턴을 이용하여, 하나의 instance로 관리한다.
-3. Client 요청의 처리 순서는 FIFO 구조를 지킨다.
+1. 각 공유자원은 접근시, 동시성 문제가 발생하지 않도록 **mutex**를 이용한다.
+2. 공유자원은 **Singleton** 패턴을 이용하여, 하나의 instance로 관리한다.
+3. Client 요청의 처리 순서는 **FIFO 구조**를 지킨다.
 
 # 🏗️ 설계
 ![flow chart](https://github.com/user-attachments/assets/fd8b3d98-cb13-472b-b8f7-153ce1c3c127)
@@ -44,10 +44,10 @@
 ## 3️⃣ Client Thread
 1. Client에게서 Id를 수신한다.
 2. Client에서 보낸 메시지를 수신한다.
-3. 메시지를 LogFile에 Id와 함께 기록한다.
+3. 메시지를 Log File에 Id와 함께 기록한다.
 4. 종료 메시지를 수신하면 Delete Queue에 자신의 Fd값을 적고 작업을 종료한다.
 
-### 4️⃣ Arrange ClientThread Thread
+## 4️⃣ Arrange ClientThread Thread
 1. Delete Queue를 확인하여 제거할 Client Thread를 Pop한다.
     * 제거할 Client Thread가 없다면 대기한다.
 2. 해당 thread를 종료하고 소멸시킨다. 
